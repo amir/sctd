@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 chrono = "0.4.11"
 spa = "0.2.0"
+clap = "2.33.0"
 
 [dependencies.x11]
 version = "2.18.2"
