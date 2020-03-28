@@ -10,7 +10,7 @@ use std::time::Duration;
 
 fn main() {
     let matches = App::new("sctd")
-        .version("0.1")
+        .version("0.1.1")
         .about("set color temperature daemon")
         .arg(
             Arg::with_name("latitude")
