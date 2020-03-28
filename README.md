@@ -6,7 +6,7 @@ Based on [sct](https://flak.tedunangst.com/post/sct-set-color-temperature) by Te
 
 ### Set latitude and longitude
 ```bash
-$ cargo run -- --latitude 53.3498 --longitude 6.2603
+$ cargo run -- --latitude 53.3498 --longitude -6.2603
 ```
 
 ### Reset
