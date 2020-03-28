@@ -1,14 +1,21 @@
+#[macro_use]
+extern crate log;
+
 extern crate chrono;
 extern crate clap;
 extern crate spa;
 
 use chrono::prelude::*;
 use clap::{value_t_or_exit, App, Arg};
+use env_logger::Env;
 use spa::calc_sunrise_and_set;
 use std::thread;
 use std::time::Duration;
 
 fn main() {
+    let env = Env::default().filter_or("SCTD_LOG_LEVEL", "info");
+    env_logger::init_from_env(env);
+
     let matches = App::new("sctd")
         .version("0.1.1")
         .about("set color temperature daemon")
@@ -38,11 +45,11 @@ fn main() {
             match calc_sunrise_and_set(utc, latitude, longitude) {
                 Ok(ss) => {
                     let temp = sctd::get_temp(utc, &ss, latitude, longitude) as u32;
-                    println!("setting temprature to: {}", temp);
+                    info!("setting temprature to {}", temp);
                     sctd::set_temp(temp);
                 }
                 Err(e) => {
-                    println!("Error calculating sunrise and sunset: {:?}", e);
+                    error!("error calculating sunrise and sunset for {}, {}: {:?}", latitude, longitude, e);
                 }
             }
             thread::sleep(Duration::from_secs(300));

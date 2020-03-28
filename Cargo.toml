@@ -9,6 +9,12 @@ license = "CC0-1.0"
 chrono = "0.4.11"
 spa = { git = "https://github.com/amir/spa-rs", branch = "pub-SolarPos" }
 clap = "2.33.0"
+log = "0.4"
+
+[dependencies.env_logger]
+version = "0.7.1"
+default_features = false
+features = ["humantime"]
 
 [dependencies.x11]
 version = "2.18.2"

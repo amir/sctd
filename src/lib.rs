@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+
 extern crate spa;
 
 use chrono::prelude::*;
@@ -67,6 +70,7 @@ pub fn get_temp(utc: DateTime<Utc>, ss: &SunriseAndSet, lat: f64, lon: f64) -> f
     match *ss {
         SunriseAndSet::Daylight(_, _) => {
             let elevation = 90f64 - calc_solar_position(utc, lat, lon).unwrap().zenith_angle;
+            debug!("elevation: {}", elevation);
             let progress = get_transition_progress_from_elevation(elevation);
             LOW_TEMP + (progress * (HIGH_TEMP - LOW_TEMP))
         }
