@@ -57,7 +57,7 @@ fn get_transition_progress_from_elevation(elevation: f64) -> f64 {
     if elevation < TRANSITION_LOW {
         return 0.0;
     } else if elevation < TRANSITION_HIGH {
-        (-TRANSITION_LOW - elevation) / (-TRANSITION_LOW - TRANSITION_HIGH)
+        (TRANSITION_LOW - elevation) / (TRANSITION_LOW - TRANSITION_HIGH)
     } else {
         return 1.0;
     }

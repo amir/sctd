@@ -36,8 +36,14 @@ fn main() {
         loop {
             let utc: DateTime<Utc> = Utc::now();
             match calc_sunrise_and_set(utc, latitude, longitude) {
-                Ok(ss) => sctd::set_temp(sctd::get_temp(utc, &ss, latitude, longitude) as u32),
-                Err(e) => println!("Error calculating sunrise and sunset: {:?}", e),
+                Ok(ss) => {
+                    let temp = sctd::get_temp(utc, &ss, latitude, longitude) as u32;
+                    println!("setting temprature to: {}", temp);
+                    sctd::set_temp(temp);
+                }
+                Err(e) => {
+                    println!("Error calculating sunrise and sunset: {:?}", e);
+                }
             }
             thread::sleep(Duration::from_secs(300));
         }
