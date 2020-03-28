@@ -3,6 +3,7 @@ name = "sctd"
 version = "0.1.0"
 authors = ["Amir Saeid <amir@glgdgt.com>"]
 edition = "2018"
+license = "CC0-1.0"
 
 [dependencies]
 chrono = "0.4.11"
