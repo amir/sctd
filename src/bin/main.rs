@@ -17,7 +17,7 @@ fn main() {
     env_logger::init_from_env(env);
 
     let matches = App::new("sctd")
-        .version("0.1.1")
+        .version("0.1.2")
         .about("set color temperature daemon")
         .arg(
             Arg::with_name("latitude")
