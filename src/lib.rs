@@ -1,8 +1,78 @@
+extern crate spa;
+
+use chrono::prelude::*;
+use spa::{calc_solar_position, SunriseAndSet};
+use std::os::raw::{c_ushort, c_void};
+use std::ptr;
+use x11::xlib::{XDefaultScreen, XFree, XOpenDisplay, XRootWindow};
+use x11::xrandr::{
+    XRRAllocGamma, XRRCrtcGamma, XRRGetCrtcGammaSize, XRRGetScreenResourcesCurrent, XRRSetCrtcGamma,
+};
+
+const LOW_TEMP: f64 = 3500f64;
+const HIGH_TEMP: f64 = 5500f64;
+
+const TRANSITION_LOW: f64 = -6.0;
+const TRANSITION_HIGH: f64 = 3.0;
+
 #[derive(Debug)]
 pub struct WhitePoint {
     pub red: f64,
     pub green: f64,
     pub blue: f64,
+}
+
+pub fn set_temp(temp: u32) {
+    let ratio: f64 = (temp % 500) as f64 / 500f64;
+    unsafe {
+        let display = XOpenDisplay(ptr::null_mut());
+        let screen = XDefaultScreen(display);
+        let root = XRootWindow(display, screen);
+        let resource = XRRGetScreenResourcesCurrent(display, root);
+
+        for x in 0..(*resource).ncrtc {
+            let crtcxid = (*resource).crtcs.offset(x as isize);
+            let size = XRRGetCrtcGammaSize(display, *crtcxid);
+            let crtc_gamma: *mut XRRCrtcGamma = XRRAllocGamma(size);
+            let gamma = avg(temp, ratio);
+
+            for i in 0..size {
+                let g = (65535f64 * i as f64) / size as f64;
+                *((*crtc_gamma).red as *mut c_ushort).offset(i as isize) = (g * gamma.red) as u16;
+                *((*crtc_gamma).green as *mut c_ushort).offset(i as isize) =
+                    (g * gamma.green) as u16;
+                *((*crtc_gamma).blue as *mut c_ushort).offset(i as isize) = (g * gamma.blue) as u16;
+            }
+            XRRSetCrtcGamma(display, *crtcxid, crtc_gamma);
+            XFree(crtc_gamma as *mut c_void);
+        }
+    }
+}
+
+pub fn reset_temp() {
+    set_temp(HIGH_TEMP as u32);
+}
+
+fn get_transition_progress_from_elevation(elevation: f64) -> f64 {
+    if elevation < TRANSITION_LOW {
+        return 0.0;
+    } else if elevation < TRANSITION_HIGH {
+        (-TRANSITION_LOW - elevation) / (-TRANSITION_LOW - TRANSITION_HIGH)
+    } else {
+        return 1.0;
+    }
+}
+
+pub fn get_temp(utc: DateTime<Utc>, ss: &SunriseAndSet, lat: f64, lon: f64) -> f64 {
+    match *ss {
+        SunriseAndSet::Daylight(_, _) => {
+            let elevation = 90f64 - calc_solar_position(utc, lat, lon).unwrap().zenith_angle;
+            let progress = get_transition_progress_from_elevation(elevation);
+            LOW_TEMP + (progress * (HIGH_TEMP - LOW_TEMP))
+        }
+        SunriseAndSet::PolarDay => HIGH_TEMP,
+        SunriseAndSet::PolarNight => LOW_TEMP,
+    }
 }
 
 pub fn avg(temp: u32, ratio: f64) -> WhitePoint {
