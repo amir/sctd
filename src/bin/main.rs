@@ -4,7 +4,7 @@ extern crate spa;
 
 use chrono::prelude::*;
 use clap::{value_t_or_exit, App, Arg};
-use spa::{calc_sunrise_and_set, SunriseAndSet};
+use spa::{calc_solar_position, calc_sunrise_and_set, SolarPos, SunriseAndSet};
 use std::os::raw::{c_ushort, c_void};
 use std::ptr;
 use std::thread;
@@ -41,26 +41,28 @@ fn set_temp(temp: u32) {
     }
 }
 
-fn get_temp(utc: DateTime<Utc>, ss: &SunriseAndSet) -> u32 {
-    let low_temp = 2500;
-    let high_temp = 5500;
+fn get_transition_progress_from_elevation(elevation: f64) -> f64 {
+    if elevation < -6.0 {
+        return 0.0
+    } else if elevation < 3.0 {
+        (-6.0 - elevation) / (-6.0 - 3.0)
+    } else {
+        return 1.0
+    }
+}
+
+fn get_temp(utc: DateTime<Utc>, ss: &SunriseAndSet, lat: f64, lon: f64) -> f64 {
+    let low_temp = 3500f64;
+    let high_temp = 5500f64;
 
     match *ss {
-        SunriseAndSet::Daylight(sunrise, sunset) => {
-            let since_sunrise = utc.signed_duration_since(sunrise);
-            let since_sunset = utc.signed_duration_since(sunset);
-
-            // this is where gradual increase/decrease should happen
-            if since_sunrise.num_seconds() < 0 {
-                return low_temp;
-            } else if since_sunset.num_seconds() < 0 {
-                return high_temp;
-            } else {
-                return low_temp;
-            }
+        SunriseAndSet::Daylight(_, _) => {
+            let elevation = 90f64 - calc_solar_position(utc, lat, lon).unwrap().zenith_angle;
+            let progress = get_transition_progress_from_elevation(elevation);
+            low_temp + (progress * (high_temp - low_temp))
         }
-        SunriseAndSet::PolarDay => return high_temp,
-        SunriseAndSet::PolarNight => return low_temp,
+        SunriseAndSet::PolarDay => high_temp,
+        SunriseAndSet::PolarNight => low_temp,
     }
 }
 
@@ -70,12 +72,14 @@ fn main() {
         .arg(
             Arg::with_name("latitude")
                 .long("latitude")
-                .takes_value(true),
+                .takes_value(true)
+                .allow_hyphen_values(true),
         )
         .arg(
             Arg::with_name("longitude")
                 .long("longitude")
-                .takes_value(true),
+                .takes_value(true)
+                .allow_hyphen_values(true),
         )
         .arg(Arg::with_name("reset").long("reset"))
         .get_matches();
@@ -89,7 +93,7 @@ fn main() {
         loop {
             let utc: DateTime<Utc> = Utc::now();
             match calc_sunrise_and_set(utc, latitude, longitude) {
-                Ok(ss) => set_temp(get_temp(utc, &ss)),
+                Ok(ss) => set_temp(get_temp(utc, &ss, latitude, longitude) as u32),
                 Err(e) => println!("Error calculating sunrise and sunset: {:?}", e),
             }
             thread::sleep(Duration::from_secs(300));
