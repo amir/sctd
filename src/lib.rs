@@ -7,7 +7,7 @@ use chrono::prelude::*;
 use spa::{calc_solar_position, SunriseAndSet};
 use std::os::raw::{c_ushort, c_void};
 use std::ptr;
-use x11::xlib::{XDefaultScreen, XFree, XOpenDisplay, XRootWindow};
+use x11::xlib::{XCloseDisplay, XDefaultScreen, XFree, XOpenDisplay, XRootWindow};
 use x11::xrandr::{
     XRRAllocGamma, XRRCrtcGamma, XRRGetCrtcGammaSize, XRRGetScreenResourcesCurrent, XRRSetCrtcGamma,
 };
@@ -49,6 +49,7 @@ pub fn set_temp(temp: u32) {
             XRRSetCrtcGamma(display, *crtcxid, crtc_gamma);
             XFree(crtc_gamma as *mut c_void);
         }
+        XCloseDisplay(display);
     }
 }
 
