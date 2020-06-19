@@ -1,5 +1,8 @@
 name: release
-on: push
+on:
+  push:
+    tags:
+    - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   create-release:
@@ -81,7 +84,7 @@ jobs:
       shell: bash
       run: |
         staging="sctd-${{ env.RELEASE_VERSION }}"
-        mkdir "$staging"
+        mkdir -p "$staging"
         cp target/release/sctd "$staging"
         cp LICENSE "$staging"
         tar czf "$staging.tar.gz" "$staging"
