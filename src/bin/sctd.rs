@@ -51,7 +51,10 @@ fn main() {
                         info!("setting temprature to {}", temp);
                         sctd::set_temp(temp);
                     } else {
-                        debug!("skipping temperature change as it hasn't changed ({})", temp);
+                        debug!(
+                            "skipping temperature change as it hasn't changed ({})",
+                            temp
+                        );
                     }
                 }
                 Err(e) => {
