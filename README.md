@@ -6,12 +6,6 @@ Based on [sct](https://flak.tedunangst.com/post/sct-set-color-temperature) by Te
 
 Precompiled binaries are [available](https://github.com/amir/sctd/releases).
 
-If you're an **Arch Linux** user, then you can install sctd from the official repos:
-
-```
-$ pacman -S sctd
-```
-
 ## Usage
 
 ### Set latitude and longitude
