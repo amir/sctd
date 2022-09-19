@@ -1,21 +1,21 @@
 [package]
 name = "sctd"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["Amir Saeid <amir@glgdgt.com>"]
 edition = "2018"
 license = "CC0-1.0"
 
 [dependencies]
-chrono = "0.4.11"
-spa = { git = "https://github.com/amir/spa-rs", branch = "pub-SolarPos" }
-clap = "2.33.0"
+chrono = "0.4"
+spa = "0.3"
+clap = "3.2"
 log = "0.4"
 
 [dependencies.env_logger]
-version = "0.7.1"
+version = "0.9"
 default_features = false
 features = ["humantime"]
 
 [dependencies.x11]
-version = "2.18.2"
+version = "2.20"
 features = ["xlib", "xrandr"]
