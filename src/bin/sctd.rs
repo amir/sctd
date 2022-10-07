@@ -48,7 +48,7 @@ fn main() {
                     let new_temp = sctd::get_temp(utc, &ss, latitude, longitude) as u32;
                     if new_temp != temp {
                         temp = new_temp;
-                        info!("setting temprature to {}", temp);
+                        info!("setting temperature to {}", temp);
                         sctd::set_temp(temp);
                     } else {
                         debug!(
