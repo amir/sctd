@@ -6,9 +6,9 @@ extern crate clap;
 extern crate spa;
 
 use chrono::prelude::*;
-use clap::{value_t_or_exit, App, Arg};
+use clap::{Arg, Command};
 use env_logger::Env;
-use spa::calc_sunrise_and_set;
+use spa::{sunrise_and_set, StdFloatOps};
 use std::thread;
 use std::time::Duration;
 
@@ -16,51 +16,62 @@ fn main() {
     let env = Env::default().filter_or("SCTD_LOG_LEVEL", "info");
     env_logger::init_from_env(env);
 
-    let matches = App::new("sctd")
-        .version("0.3.0")
+    let matches = Command::new("sctd")
+        .version(option_env!("CARGO_PKG_VERSION").unwrap_or("N/A"))
         .about("set color temperature daemon")
         .arg(
-            Arg::with_name("latitude")
+            Arg::new("latitude")
                 .long("latitude")
-                .takes_value(true)
+                .value_name("LATITUDE")
+                .help("Latitude coordinate")
                 .allow_hyphen_values(true),
         )
         .arg(
-            Arg::with_name("longitude")
+            Arg::new("longitude")
                 .long("longitude")
-                .takes_value(true)
+                .value_name("LONGITUDE")
+                .help("Longitude coordinate")
                 .allow_hyphen_values(true),
         )
-        .arg(Arg::with_name("reset").long("reset"))
+        .arg(
+            Arg::new("reset")
+                .long("reset")
+                .help("Reset temperature")
+                .action(clap::ArgAction::SetTrue),
+        )
         .get_matches();
 
-    if matches.is_present("reset") {
+    if matches.get_flag("reset") {
         sctd::reset_temp();
     } else {
-        let latitude = value_t_or_exit!(matches, "latitude", f64);
-        let longitude = value_t_or_exit!(matches, "longitude", f64);
+        let latitude: f64 = matches
+            .get_one::<String>("latitude")
+            .expect("latitude is required")
+            .parse()
+            .expect("latitude must be a valid number");
+        let longitude: f64 = matches
+            .get_one::<String>("longitude")
+            .expect("longitude is required")
+            .parse()
+            .expect("longitude must be a valid number");
         let mut temp = 0;
 
         loop {
             let utc: DateTime<Utc> = Utc::now();
-            match calc_sunrise_and_set(utc, latitude, longitude) {
+            match sunrise_and_set::<StdFloatOps>(utc, latitude, longitude) {
                 Ok(ss) => {
                     let new_temp = sctd::get_temp(utc, &ss, latitude, longitude) as u32;
                     if new_temp != temp {
                         temp = new_temp;
-                        info!("setting temperature to {}", temp);
+                        info!("setting temperature to {temp}");
                         sctd::set_temp(temp);
                     } else {
-                        debug!(
-                            "skipping temperature change as it hasn't changed ({})",
-                            temp
-                        );
+                        debug!("skipping temperature change as it hasn't changed ({temp})");
                     }
                 }
                 Err(e) => {
                     error!(
-                        "error calculating sunrise and sunset for {}, {}: {:?}",
-                        latitude, longitude, e
+                        "error calculating sunrise and sunset for {latitude}, {longitude}: {e:?}"
                     );
                 }
             }
