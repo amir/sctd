@@ -48,19 +48,15 @@ fn main() {
                     let new_temp = sctd::get_temp(utc, &ss, latitude, longitude) as u32;
                     if new_temp != temp {
                         temp = new_temp;
-                        info!("setting temperature to {}", temp);
+                        info!("setting temperature to {temp}");
                         sctd::set_temp(temp);
                     } else {
-                        debug!(
-                            "skipping temperature change as it hasn't changed ({})",
-                            temp
-                        );
+                        debug!("skipping temperature change as it hasn't changed ({temp})");
                     }
                 }
                 Err(e) => {
                     error!(
-                        "error calculating sunrise and sunset for {}, {}: {:?}",
-                        latitude, longitude, e
+                        "error calculating sunrise and sunset for {latitude}, {longitude}: {e:?}"
                     );
                 }
             }
