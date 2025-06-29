@@ -17,7 +17,7 @@ pub fn set_temp(temp: u32) {
             let crtcxid = (*resource).crtcs.offset(x as isize);
             let size = XRRGetCrtcGammaSize(display, *crtcxid);
             let crtc_gamma: *mut XRRCrtcGamma = XRRAllocGamma(size);
-            let gamma = avg(temp, ratio);
+            let gamma = crate::avg(temp, ratio);
 
             for i in 0..size {
                 let g = (65535f64 * i as f64) / size as f64;
