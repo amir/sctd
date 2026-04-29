@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.services.sctd;
+  cfg = config.services.sctd-amir;
 
   # sctd accepts decimal numbers; toString preserves them faithfully.
   args = [
@@ -20,7 +20,7 @@ let
   exe = lib.getExe cfg.package;
 in
 {
-  options.services.sctd = {
+  options.services.sctd-amir = {
     enable = lib.mkEnableOption "sctd, the set color temperature daemon";
 
     package = lib.mkOption {
@@ -80,7 +80,7 @@ in
 
     home.packages = [ cfg.package ];
 
-    systemd.user.services.sctd = {
+    systemd.user.services.sctd-amir = {
       Unit = {
         Description = "sctd — set color temperature daemon";
         Documentation = [ "https://github.com/amir/sctd" ];
